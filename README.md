@@ -13,7 +13,7 @@ Overall, I got 1.5~2.0x performance gain by applying all below.
 1. Use `NCHW` data format for 4D tensor.
   * Native data format for cudnn library is `NCHW`. Performance gain increases as you have many layers.
   * If you use this format, using `_fused_batch_norm` is mandatory. Otherwise, your code will be almost 10x slower since `nn.moments` cannot deal with this format efficiently.
-  * Several preprocessing ops support only `CHW` format, so we have to transpose tensors somewhere. If your input pipeline is a bottleneck, it is better to transpose them using GPU.
+  * Several preprocessing ops support only `HWC` format, so we have to transpose tensors somewhere. If your input pipeline is a bottleneck, it is better to transpose them using GPU.
 2. Use fused batch norm.
   * Whatever your data format is, it is better to use fused batch norm.
 
