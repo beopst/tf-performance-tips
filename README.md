@@ -2,24 +2,24 @@
 
 This repo summarizes some techniques for optimizing TensorFlow code. Official document describing a collection of best practices can be found [here](https://www.tensorflow.org/performance/performance_guide). Before started, it will be very helpful to read it.
 
-Dockerfile which contains all of libraries/packages introduced here is provided. It includes how to install the libraries/packages listed below.
+[Dockerfile](https://github.com/beopst/tf-performance-tips/blob/master/dockerfile/tf-gpu-intel-dockerfile) which contains all of libraries/packages introduced here is provided. It includes how to install the libraries/packages listed below.
 
 First of all, it is important to find whether CPU will bottleneck GPU, or vice versa (simply check by running `nvidia-smi`). If GPU is a bottleneck, it is relatively easy to optimize. On the other hand, it is complicated if CPU is your bottleneck.
 
-Overall, I got 1.5~2.0x performance gain by applying all belows.
+Overall, I got 1.5~2.0x performance gain by applying all below.
 
 ## If GPUs are fully utilized
 
 1. Use `NCHW` data format for 4D tensor.
   * Native data format for cudnn library is `NCHW`. Performance gain increases as you have many layers.
-  * If you use this format, using `_fused_batch_norm` is mandatory. Otherwise, your code will be almost 10x slower since `nn.moments` cannot deal with this format effciently.
-  * Several preprocessing ops support `CHW` format, so we have to transpose tensors somewhere. If your input pipeline is a bottleneck, it is better to transpose them using GPU.
+  * If you use this format, using `_fused_batch_norm` is mandatory. Otherwise, your code will be almost 10x slower since `nn.moments` cannot deal with this format efficiently.
+  * Several preprocessing ops support only `CHW` format, so we have to transpose tensors somewhere. If your input pipeline is a bottleneck, it is better to transpose them using GPU.
 2. Use fused batch norm.
   * Whatever your data format is, it is better to use fused batch norm.
 
 ## If CPUs are your bottleneck
 
-1. Utilize queues for input pipieline
+1. Utilize queues for input pipeline
   * First, you have to utilize queues for reading and fetching input data. Please refer to [Reading Data Guide](https://www.tensorflow.org/programmers_guide/reading_data#reading_from_files) and [`batch_inputs` function](https://github.com/tensorflow/models/blob/master/inception/inception/image_processing.py#L407) in inception codes.
   * CAREFULLY allocate threads for each reading and preprocessing. It completely depends on your machine: how many threads can you use?, can you read from SSD?, etc.
 2. Use TCMalloc.
